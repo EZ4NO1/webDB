@@ -1,5 +1,8 @@
 from django.db import models
+from .field import YMField
 var_char_length=45
+class test(models.Model):
+    data=YMField()
 class Major_transfer(models.Model):
     student_unnormal_change_id=models.OneToOneField('Student_unnormal_change',on_delete=models.CASCADE,primary_key=True)
     youth_league_changed=(
@@ -9,7 +12,7 @@ class Major_transfer(models.Model):
     )
 class Student_unnormal_change(models.Model):
     id=models.AutoField(primary_key=True)
-    data=models.DateField()
+    data=YMField()
     class_before=models.ForeignKey('Class', on_delete=models.CASCADE,related_name='before')
     class_after=models.ForeignKey('Class', on_delete=models.CASCADE,related_name='after')
     change_type=(
