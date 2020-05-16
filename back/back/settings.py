@@ -74,14 +74,15 @@ WSGI_APPLICATION = 'back.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+from .local_setting import DATABASES_local as loc
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'webdb',
-        'USER': 'root',
-        'PASSWORD': 'abc6123666',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
+        'NAME': loc['NAME'],
+        'USER': loc['USER'],
+        'PASSWORD': loc['PASSWORD'],
+        'HOST': loc['HOST'],
+        'PORT': loc['PORT'],
     }
 }
 

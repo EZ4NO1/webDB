@@ -42,6 +42,7 @@ def numtodate(x):
     return str(a)+'-'+tep
 class YMField(models.CharField):
     description="a field of YYYY-MM type date,valid only between start_time and now"
+    '''python data format:(1999,11) data_baseformat:1999-11'''
     def __init__(self,*args, **kwargs):
         super().__init__(max_length = 7)
     def from_db_value(self, value, expression, connection):
@@ -59,3 +60,11 @@ class YMField(models.CharField):
         if value is None:
             return value
         return numtodate(value)
+class BirthField(models.DateField):
+    def get_prep_value(self, value):
+        print('work')
+        print(value)
+        print(datetime.date.today())
+        if value>datetime.date.today():
+            raise ValidationError('birth on future')
+        return super().get_prep_value(value)
