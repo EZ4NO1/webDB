@@ -108,3 +108,4 @@ GitHub.sublime-settings
 
 *.swp
 back/local_setting.py
+back/venv
