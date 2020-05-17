@@ -7,8 +7,11 @@ def datatonum(x):
     if len(x)!=7:
         raise ValidationError('length not 7')
         return
-    a=int(x[:4])
-    b=int(x[-2:])
+    try:
+        a=int(x[:4])
+        b=int(x[-2:])
+    except Exception:
+        raise ValidationError('not YYYY-MM format')
     if a>datetime.date.today().year:
         raise ValidationError('future')
         return
@@ -42,7 +45,6 @@ def numtodate(x):
     return str(a)+'-'+tep
 class YMField(models.CharField):
     description="a field of YYYY-MM type date,valid only between start_time and now"
-    '''python data format:(1999,11) data_baseformat:1999-11'''
     def __init__(self,*args, **kwargs):
         super().__init__(max_length = 7)
     def from_db_value(self, value, expression, connection):
@@ -52,19 +54,27 @@ class YMField(models.CharField):
     def to_python(self, value):
         print('to_python')
         if isinstance(value, str):
-            return datatonum(value)
+            datatonum(value)
+            return value
         if value is None:
             return value
         raise ValidationError('not None or str')
     def get_prep_value(self, value):
-        if value is None:
-            return value
-        return numtodate(value)
+        datatonum(value)
+        return value
+
 class BirthField(models.DateField):
     def get_prep_value(self, value):
+        if value is None:
+            return value
         print('work')
         print(value)
         print(datetime.date.today())
         if value>datetime.date.today():
             raise ValidationError('birth on future')
         return super().get_prep_value(value)
+    def to_python(self, value):
+        a=super().to_python(value)
+        if a>datetime.date.today():
+            raise ValidationError('birth on future')
+        return a
