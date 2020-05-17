@@ -32,7 +32,7 @@ class Major(models.Model):
     id=models.CharField(max_length=var_char_length,primary_key=True)
     name=models.CharField(max_length=var_char_length)
     campus_id=models.ForeignKey('Campus', on_delete=models.CASCADE)
-    person_in_cahrge=models.ForeignKey('Teacher', on_delete=models.CASCADE)
+    person_in_charge=models.ForeignKey('Teacher', on_delete=models.CASCADE)
     address=models.CharField(max_length=var_char_length)
 class Campus(models.Model):
     id=models.CharField(max_length=var_char_length,primary_key=True)
@@ -88,7 +88,7 @@ class Student_teacher(models.Model):
     entry_data=YMField()
     #constriant
 class Home_information(models.Model):
-    setudent_teacher_id_number=models.ForeignKey("Student_teacher",on_delete=models.CASCADE)
+    student_teacher_id_number=models.ForeignKey("Student_teacher",on_delete=models.CASCADE)
     home_address=models.CharField(max_length=var_char_length)
     post_code=models.CharField(max_length=var_char_length)
     home_telephone_number=models.CharField(max_length=var_char_length)
