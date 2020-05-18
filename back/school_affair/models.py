@@ -156,7 +156,7 @@ def Create_CASCADE(sender, instance,created, **kwargs):
             Teacher.objects.create(student_teacher_idnumber=instance)
 
 class Home_information(models.Model):
-    setudent_teacher_id_number=models.ForeignKey("Student_teacher",on_delete=models.CASCADE)
+    student_teacher_id_number=models.ForeignKey("Student_teacher",on_delete=models.CASCADE)
     home_address=models.CharField(max_length=var_char_length)
     post_code=models.CharField(max_length=var_char_length)
     home_telephone_number=models.CharField(max_length=var_char_length)
