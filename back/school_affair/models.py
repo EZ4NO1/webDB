@@ -7,6 +7,7 @@ import datetime
 from django.db.models import ProtectedError
 from django.contrib.auth.models import AbstractUser 
 from django.core.validators import MinLengthValidator
+from django.core.exceptions import  ValidationError
 class NotGraduateError(Exception):
     pass
 var_char_length=45
@@ -24,6 +25,8 @@ class clean_model(models.Model):
     def save(self,*args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
+    def sup_save(self,*args, **kwargs):
+        super().save(*args, **kwargs)
     class Meta:
         abstract = True
 
@@ -38,29 +41,54 @@ class Major_transfer(clean_model):
         ('yes','是'),
         ('no','不是'),
         ('not a','不是团员')
-    )
+    ),null=True,blank=True
     )
     def __str__(self):
-        return str(self.student_unnormal_change_id.student_id)
+        return str(self.sup.student_id)
+    def delete(self):
+        self.sup.delete()
+    def clean(self):
+        super().clean()
+        if self.sup.change_type!='transfer':
+            raise ValidationError('cannot change sub')
 class Student_unnormal_change(clean_model):
     id=models.AutoField(primary_key=True)
     data=YMField()
     class_before=models.ForeignKey('Class', on_delete=models.CASCADE,related_name='before')
     class_after=models.ForeignKey('Class', on_delete=models.CASCADE,related_name='after')
     change_type=models.CharField(max_length=10,choices=(
-        ('tranfer','转专业'),
+        ('transfer','转专业'),
         ('downward','降级')
         )
     )
     student_id=models.ForeignKey("Student",on_delete=models.CASCADE)
     def __str__(self):
         return str(self.student_id)+'-'+self.change_type
+
+@receiver(post_save, sender=Student_unnormal_change, dispatch_uid="create unormal_change_sub-entity")
+def Create_CASCADE_Unormal_Change(sender, instance,created, **kwargs):
+    if (created):
+        if (instance.change_type=='transfer'):
+            Major_transfer.objects.create(sup=instance)
+        if (instance.change_type=='downward'):
+            Grade_downward.objects.create(sup=instance)
+
 class Grade_downward(clean_model):
     id=models.AutoField(primary_key=True)
     sup=models.OneToOneField('Student_unnormal_change',on_delete=models.CASCADE)
-    cause=models.CharField(max_length=10,choices=(('suspend','休学'),('teacher','支教')))
+    cause=models.CharField(max_length=10,choices=(('suspend','休学'),('teacher','支教')),null=True,blank=True)
     def __str__(self):
-        return str(self.student_unnormal_change_id.student_id)
+        return str(self.sup.student_id)
+    def delete(self):
+        self.sup.delete()
+    def clean(self):
+        super().clean()
+        if self.sup.change_type!='downward':
+            raise ValidationError('cannot change sub')
+
+
+
+
 class Major(clean_model):
     id=models.CharField(validators=[MinLengthValidator(1)],max_length=var_char_length,primary_key=True)
     name=models.CharField(validators=[MinLengthValidator(1)],max_length=var_char_length)
@@ -89,9 +117,9 @@ class Student(clean_model):
     sup=models.OneToOneField("Student_teacher",on_delete=models.PROTECT)
     class_id=models.ForeignKey("Class", on_delete=models.CASCADE,null=True,blank=True)
     def __str__(self):
-        return self.id.name_chinese
+        return self.sup.name_chinese
     def delete(self):
-        t=datatonum(self.id.entry_data)
+        t=datatonum(self.sup.entry_data)
         entry_m=t[0]*12+t[1]
         now_m=datetime.date.today().year*12+datetime.date.today().month
         if now_m-entry_m >=48:
@@ -101,6 +129,10 @@ class Student(clean_model):
         else :
             raise NotGraduateError('cannot delete student not graduated')
     objects = NoDeleteManager()
+    def clean(self):
+        super().clean()
+        if self.sup.student_or_teacher!='student':
+            raise ValidationError('cannot change sub')
 
 class Course(clean_model):
     id=models.CharField(validators=[MinLengthValidator(1)],max_length=var_char_length,primary_key=True)
@@ -124,12 +156,16 @@ class Teacher(clean_model):
     major_id=models.ForeignKey("Major", on_delete=models.PROTECT,null=True,blank=True)
     professional_title=models.CharField(max_length=20,choices=(('professor','教授'),('associate professor','副教授')),null=True,blank=True)
     def __str__(self):
-        return self.id.name_chinese
+        return self.sup.name_chinese
     def delete(self):
         t=self.sup
         super().delete()
         t.delete()
     objects = NoDeleteManager()
+    def clean(self):
+        super().clean()
+        if self.sup.student_or_teacher!='teacher':
+            raise ValidationError('cannot change sub')
 
 class Course_sign_up(clean_model):
     id=models.AutoField(primary_key=True)
@@ -171,9 +207,9 @@ def Create_CASCADE(sender, instance,created, **kwargs):
 class Home_information(clean_model):
     id=models.AutoField(primary_key=True)
     sup=models.OneToOneField("Student_teacher",on_delete=models.CASCADE)
-    home_address=models.CharField(validators=[MinLengthValidator(1)],max_length=var_char_length)
-    post_code=models.CharField(validators=[MinLengthValidator(1)],max_length=var_char_length)
-    home_telephone_number=models.CharField(validators=[MinLengthValidator(1)],max_length=var_char_length)
+    home_address=models.CharField(validators=[MinLengthValidator(1)],max_length=var_char_length,null=True,blank=True)
+    post_code=models.CharField(validators=[MinLengthValidator(1)],max_length=var_char_length,null=True,blank=True)
+    home_telephone_number=models.CharField(validators=[MinLengthValidator(1)],max_length=var_char_length,null=True,blank=True)
     def __str__(self):
         return self.setudent_teacher_id_number.student_or_teacher+self.setudent_teacher_id_number.name_chinese+" 的家庭信息"
 

@@ -4,7 +4,7 @@ from .models import NotGraduateError
 from django.urls import reverse
 from django.http import HttpResponseRedirect 
 class MyModelAdmin(admin.ModelAdmin):
-    actions=['really_delete_selected']
+    actions=[]
     def get_actions(self, request):
         actions = super().get_actions(request)
         del actions['delete_selected']
@@ -56,7 +56,7 @@ admin.site.register(Campus)
 admin.site.register(Class)
 admin.site.register(Student,MyModelAdmin)
 admin.site.register(Course)
-admin.site.register(Teacher)
+admin.site.register(Teacher,MyModelAdmin)
 admin.site.register(Course_sign_up)
 admin.site.register(Student_teacher)
 admin.site.register(Home_information)
