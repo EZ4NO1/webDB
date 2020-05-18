@@ -12,6 +12,8 @@ def datatonum(x):
         b=int(x[-2:])
     except Exception:
         raise ValidationError('not YYYY-MM format')
+    if not (b>=1 and b<=12):
+        raise ValidationError('not YYYY-MM format')
     if a>datetime.date.today().year:
         raise ValidationError('future')
         return
@@ -25,24 +27,6 @@ def datatonum(x):
         raise ValidationError('past')
         return
     return (a,b)
-def numtodate(x):
-    if (not isinstance(x,tuple))or(not len(x)==2)or(not isinstance(x[0],int)) or (not isinstance(x[1],int)):
-        raise ValidationError('not a tuple of 2 integer')
-    a=x[0]
-    b=x[1]
-    if a>datetime.date.today().year:
-        raise ValidationError('future')
-    if a==datetime.date.today().year and b>datetime.date.today().month:
-        raise ValidationError('future')
-    if a<start_year:
-        raise ValidationError('past')
-    if a==start_year and b<start_month:
-        raise ValidationError('past')
-    if b<9:
-        tep='0'+str(b)
-    else :
-        tep=str(b)
-    return str(a)+'-'+tep
 class YMField(models.CharField):
     description="a field of YYYY-MM type date,valid only between start_time and now"
     def __init__(self,*args, **kwargs):

@@ -1,18 +1,27 @@
 from django.shortcuts import render
-
 from django.http import HttpResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth import authenticate  
-from django.contrib.auth import login as django_login
+from django.contrib.auth import login as django_login,logout
 from django.shortcuts import redirect
 from . import models
 import json
 from django.http import JsonResponse
 import datetime
+from django.db import models as d_model
+from django.db.models import ForeignKey,OneToOneField,IntegerField,AutoField
+from json import JSONDecodeError
+from .field import YMField,BirthField
+
+NotExistJson=JsonResponse({'message': '数据不存在！','code':'fail'})
+NoMethodJson=JsonResponse({'message': 'No  valid Method','code':'fail'})
+NotJson=JsonResponse({'message': 'No  Json Format','code':'fail'})
+InsertExsitJson=JsonResponse({'message': 'same id exist','code':'fail'})
+IdLostJson=JsonResponse({'message': 'must contian id','code':'fail'})
+
 
 def index(request):
     return HttpResponse("Hello, world. You're at the polls index.")
-
 @require_POST
 def login(request):
     username = request.POST.get('username')
@@ -31,264 +40,162 @@ def login(request):
     else:
         return HttpResponse("login fail")
 
+def logout(request):
+        logout(request)
+        return HttpResponse("Logout success")
 
 
 
+def role_confirm(request,role):
+    aul=False
+    if  not request.user.is_authenticated:
+        return JsonResponse({'message':'未登录用户','code':'fail'})
+    if request.user.person is  None and role=='manager':
+        aul=True
+    if request.user.person:
+        if  user.person.teacher_or_student==role:
+            aul=True 
+    if not aul:
+        return JsonResponse({'message':'你不是'+role,'code':'fail'})
+    
+def try_to_save(model):
+    try:
+         model.save()
+    except Exception as e:
+        return JsonResponse({'message':str(e),'code':'fail'})
+    return JsonResponse({'message': 'OK','code':'success'})
+    
+def try_to_delete(model):
+    try:
+         model.delete()
+    except Exception as e:
+        return JsonResponse({'message':e.message,'code':'fail'})
+    return JsonResponse({'message': 'OK','code':'success'})
+def model_to_dict(model):
+    data={}
+    for f in model._meta.fields:
+        if f.choices:
+            cdict={key:value   for key,value in f.choices}
+            data[f.name]=cdict[getattr(model, f.name)]
+        else:
+            data[f.name]=str(getattr(model, f.name))
+    return data
+def queryset_to_json (queryset):
+        obj_arr=[]
+        for o in queryset:
+                obj_arr.append(model_to_dict(o))
+        return JsonResponse({'message': 'OK','code':'success','data':obj_arr})
+
+def singlemodel(request,model_class,readonlylist=[]):
+    readonlylist=readonlylist+['id']
+    try:
+        data=json.loads(request.body)
+    except JSONDecodeError:
+        return NotJson
+    method = data.get('method')
+    if not method:
+        return NoMethodJson
+    data.pop('method')
+    if (method == 'INSERT' or method == 'DELETE' or method == "EDIT") and data.get('id') is None:
+        return IdLostJson
+    if method == 'INSERT':
+        if model_class.objects.filter(id=data.get('id')).first() is not None:
+            return InsertExsitJson
+        model = model_class()
+        for f in model._meta.fields:
+            tep=data.get(f.name)
+            if (tep):
+                if isinstance(f,ForeignKey) or isinstance(f,OneToOneField):
+                    tep=f.related_model.objects.filter(id=tep).first()
+                setattr(model,f.name,tep)
+        return try_to_save(model)
+    elif method == 'DELETE':
+        data_id= data.get('id')
+        line = model_class.objects.filter(id=data_id)
+        if not line:
+            return NotExistJson
+        else:
+            return try_to_delete(line)
+    elif method == 'FORMAT':
+        dic={'message': 'OK','code':'success'}
+        forma=[]
+        for f in model_class._meta.fields:
+            one_field={}
+            one_field['name']=f.name
+            if isinstance(f,ForeignKey) or isinstance(f,OneToOneField):
+                one_field['type']='link'
+                one_field['alter']={line.id:str(line)   for line in f.related_model.objects.all()}
+            elif isinstance(f,IntegerField):
+                one_field['type']='int'
+            elif f.choices:
+                one_field['type']='choice'
+                one_field['alter']={key:value   for key,value in f.choices}
+            elif isinstance(f,AutoField):
+                one_field['type']='auto'
+            elif isinstance(f,YMField):
+                one_field['type']='YMdate'
+            else :
+                one_field['type']='text'
+            if f.name in readonlylist:
+                one_field['read_only']='true'
+            else :
+                one_field['read_only']='false'
+            forma.append(one_field)
+        print(forma)
+        dic['format']=forma
+        return JsonResponse(dic)
+    elif method == 'ALL':
+        lines = model_class.objects.all()
+        if not lines:
+            return NotExistJson
+        else:
+            return queryset_to_json(lines)
+    elif method == "EDIT":
+        model_id = data.get('id')
+        line = model_class.objects.filter(id=model_id).first()
+        if not line:
+            return NotExistJson
+        else:
+            for f in model_class._meta.fields:
+                if f in readonlylist:
+                    continue
+                tep=data.get(f.name)
+                if (tep):
+                    if isinstance(f,AutoField):
+                        continue
+                    if isinstance(f,ForeignKey) or isinstance(f,OneToOneField):
+                        tep=f.related_model.objects.filter(id=tep).first()
+                    setattr(line,f.name,tep)
+            return try_to_save(line)
+    return NoMethodJson
+
+@require_POST
 def campus(request):
-    if request.method == 'POST':
-        json_data = json.loads(request.body)
-        method = json_data['method']
-        if method == 'INSERT':
-            data = models.Campus()
-            data.id = json_data['campus_id']
-            data.name = json_data['campus_name']
-            data.address = json_data['campus_address']
-            if not data.id:
-                return JsonResponse({'message': '主键不能为空！'})
-            else:
-                data.save()
-                return JsonResponse({'message': 'OK'})
-        elif method == 'DELETE':
-            campus_id = json_data['campus_id']
-            data = models.Campus.objects.filter(id=campus_id)
-            if not data:
-                return JsonResponse({'message': '数据不存在！'})
-            else:
-                refer_data = models.Major.objects.filter(campus_id=campus_id)
-                if refer_data:
-                    return JsonResponse({'message': '存在关联信息：专业'})
-                else:
-                    data.delete()
-                    return JsonResponse({'message': 'OK'})
-        elif method == 'QUERY':
-            campus_id = json_data['campus_id']
-            data = models.Campus.objects.filter(id=campus_id)
-            if not data:
-                return JsonResponse({'message': '数据不存在！'})
-            else:
-                return JsonResponse({'message': 'OK',
-                                     'campus_id': campus_id,
-                                     'campus_name': data['name'],
-                                     'campus_address': data['address']})
-        elif method == "EDIT":
-            campus_id = json_data['campus_id']
-            data = models.Campus.objects.filter(id=campus_id)
-            if not data:
-                return JsonResponse({'message': '数据不存在！'})
-            else:
-                data.name = json_data['campus_name']
-                data.address = json_data['campus_address']
-                data.save()
-                return JsonResponse({'message': 'OK'})
+    aul=role_confirm(request,'manager')
+    if aul:    
+        return aul
+    return singlemodel(request,models.Campus)
 
-
+@require_POST
 def major(request):
-    if request.method == 'POST':
-        json_data = json.loads(request.body)
-        method = json_data['method']
-        if method == 'INSERT':
-            data = models.Major()
-            data.id = json_data['major_id']
-            data.name = json_data['major_name']
-            data.campus_id = json_data['campus_id']
-            data.person_in_charge = json_data['person_in_charge']
-            data.address = json_data['major_address']
-            if not data.id:
-                return JsonResponse({'message': '主键不能为空！'})
-            else:
-                data.save()
-                return JsonResponse({'message': 'OK'})
-        elif method == 'DELETE':
-            major_id = json_data['major_id']
-            data = models.Major.objects.filter(id=major_id)
-            if not data:
-                return JsonResponse({'message': '数据不存在！'})
-            else:
-                refer_data = models.Teacher.objects.filter(major_id=major_id)
-                if refer_data:
-                    return JsonResponse({'message': '存在关联信息：教师'})
-                else:
-                    data.delete()
-                    return JsonResponse({'message': 'OK'})
-        elif method == 'QUERY':
-            major_id = json_data['major_id']
-            data = models.Major.objects.filter(id=major_id)
-            if not data:
-                return JsonResponse({'message': '数据不存在！'})
-            else:
-                return JsonResponse({'message': 'OK',
-                                     'major_id': major_id,
-                                     'major_name': data['name'],
-                                     'campus_id': data['campus_id'],
-                                     'person_in_charge': data['person_in_charge'],
-                                     'major_address': data['address']})
-        elif method == "EDIT":
-            major_id = json_data['major_id']
-            data = models.Campus.objects.filter(id=major_id)
-            if not data:
-                return JsonResponse({'message': '数据不存在！'})
-            else:
-                data.name = json_data['major_name']
-                data.campus_id = json_data['campus_id']
-                data.person_in_charge = json_data['major_person_in_charge']
-                data.address = json_data['major_address']
-                data.save()
-                return JsonResponse({'message': 'OK'})
+    aul=role_confirm(request,'manager')
+    if aul:    
+        return aul
+    return singlemodel(request,models.Major)
 
-
+@require_POST
 def class_info(request):
-    if request.method == 'POST':
-        json_data = json.loads(request.body)
-        method = json_data['method']
-        if method == 'INSERT':
-            data = models.Class()
-            data.id = json_data['class_id']
-            data.name = json_data['class_name']
-            data.begin_time = json_data['class_begin_time']
-            data.major_id = json_data['major_id']
-            data.grade = json_data['class_grade']
-            data.header_teacher = json_data['header_teacher']
-            if not data.id:
-                return JsonResponse({'message': '主键不能为空！'})
-            else:
-                data.save()
-                return JsonResponse({'message': 'OK'})
-        elif method == 'DELETE':
-            class_id = json_data['class_id']
-            data = models.Class.objects.filter(id=class_id)
-            if not data:
-                return JsonResponse({'message': '数据不存在！'})
-            else:
-                refer_data = models.Student.objects.filter(class_id=class_id)
-                if refer_data:
-                    return JsonResponse({'message': '存在关联信息：学生'})
-                else:
-                    data.delete()
-                    return JsonResponse({'message': 'OK'})
-        elif method == 'QUERY':
-            class_id = json_data['class_id']
-            data = models.Class.objects.filter(id=class_id)
-            if not data:
-                return JsonResponse({'message': '数据不存在！'})
-            else:
-                return JsonResponse({'message': 'OK',
-                                     'class_id': class_id,
-                                     'class_name': data['name'],
-                                     'class_begin_time': data['begin_time'],
-                                     'major_id': data['major_id'],
-                                     'class_grade': data['grade'],
-                                     'header_teacher': data['header_teacher']})
-        elif method == "EDIT":
-            class_id = json_data['class_id']
-            data = models.Class.objects.filter(id=class_id)
-            if not data:
-                return JsonResponse({'message': '数据不存在！'})
-            else:
-                data.name = json_data['class_name']
-                data.begin_time = json_data['class_begin_time']
-                data.major_id = json_data['major_id']
-                data.grade = json_data['class_grade']
-                data.header_teacher = json_data['header_teacher']
-                data.save()
-                return JsonResponse({'message': 'OK'})
+    aul=role_confirm(request,'manager')
+    if aul:    
+        return aul
+    return singlemodel(request,models.Class)
 
-
+@require_POST
 def student_info(request):
-    if request.method == 'POST':
-        json_data = json.loads(request.body)
-        method = json_data['method']
-        if method == 'INSERT':
-            data = models.Student_teacher()
-            data_home = models.Home_information()
-            data.id_number = json_data['student_teacher_idnumber']
-            data.id_number_type = json_data['id_number_type']
-            data.name_chinese = json_data['name_chinese']
-            data.gender = json_data['gender']
-            data.born_date = json_data['born_date']
-            data.nationality = json_data['nationality']
-            data.email = json_data['email']
-            data.student_teacher_id = json_data['student_teacher_id']
-            data.student_or_teacher = '学生'
-            data.entry_data = json_data['entry_data']
-            data_home.student_teacher_id_number = json_data['student_teacher_idnumber']
-            data_home.home_address = json_data['home_address']
-            data_home.post_code = json_data['post_code']
-            data_home.home_telephone_number = json_data['home_telephone_number']
-            if not data.id_number:
-                return JsonResponse({'message': '主键不能为空！'})
-            else:
-                data.save()
-                data_home.save()
-                return JsonResponse({'message': 'OK'})
-        elif method == 'DELETE':
-            id_number = json_data['student_teacher_idnumber']
-            data = models.Student_teacher.objects.filter(id_number=id_number, student_or_teacher='学生')
-            data_home = models.Home_information.objects.filter(id_number=id_number)
-            if not data:
-                return JsonResponse({'message': '数据不存在！'})
-            else:
-                if int(datetime.datetime.year) - int(json_data['entry_data']) <= 4:
-                    return JsonResponse({'message': '学生尚未毕业！'})
-                else:
-                    data.delete()
-                    if data_home:
-                        data_home.delete()
-                    return JsonResponse({'message': 'OK'})
-        elif method == 'QUERY':
-            id_number = json_data['student_teacher_idnumber']
-            data = models.Student_teacher.objects.filter(id=id_number, student_or_teacher='学生')
-            data_home = models.Home_information.objects.filter(id_number=id_number)
-            if not data:
-                return JsonResponse({'message': '数据不存在！'})
-            elif data_home:
-                return JsonResponse({'message': 'OK',
-                                     'id_number': data['id_number'],
-                                     'id_number_type': data['id_number_type'],
-                                     'name_chinese': data['name_chinese'],
-                                     'gender': data['gender'],
-                                     'born_date': data['born_date'],
-                                     'nationality': data['nationality'],
-                                     'email': data['email'],
-                                     'student_teacher_id': data['student_teacher_id'],
-                                     'student_or_teacher': '学生',
-                                     'entry_data': data['entry_data'],
-                                     'home_address': data_home['home_address'],
-                                     'post_code': data_home['post_code'],
-                                     'home_telephone_number': data_home['home_telephone_number']})
-            else:
-                return JsonResponse({'message': 'OK',
-                                     'id_number': data['id_number'],
-                                     'id_number_type': data['id_number_type'],
-                                     'name_chinese': data['name_chinese'],
-                                     'gender': data['gender'],
-                                     'born_date': data['born_date'],
-                                     'nationality': data['nationality'],
-                                     'email': data['email'],
-                                     'student_teacher_id': data['student_teacher_id'],
-                                     'student_or_teacher': '学生',
-                                     'entry_data': data['entry_data']})
-        elif method == "EDIT":
-            id_number = json_data['student_teacher_idnumber']
-            data = models.Student_teacher.objects.filter(id=id_number, student_or_teacher='学生')
-            data_home = models.Home_information.objects.filter(id_number=id_number)
-            if not data:
-                return JsonResponse({'message': '数据不存在！'})
-            else:
-                data.id_number_type = json_data['id_number_type']
-                data.name_chinese = json_data['name_chinese']
-                data.gender = json_data['gender']
-                data.born_date = json_data['born_date']
-                data.nationality = json_data['nationality']
-                data.email = json_data['email']
-                data.student_teacher_id = json_data['student_teacher_id']
-                data.entry_data = json_data['entry_data']
-                data.save()
-                if data_home:
-                    data_home.home_address = json_data['home_address']
-                    data_home.post_code = json_data['post_code']
-                    data_home.home_telephone_number = json_data['home_telephone_number']
-                    data_home.save()
-                return JsonResponse({'message': 'OK'})
+    aul=role_confirm(request,'manager')
+    if aul:    
+        return aul
+    return singlemodel(request,models.Class)
 
 
 def teacher_info(request):
