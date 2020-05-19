@@ -52,7 +52,7 @@ class Major_transfer(clean_model):
         if self.sup.change_type!='transfer':
             raise ValidationError('cannot change sub')
 class Student_unnormal_change(clean_model):
-    id=models.AutoField(primary_key=True)
+    id=models.CharField(validators=[MinLengthValidator(1)],max_length=var_char_length,primary_key=True)
     data=YMField()
     class_before=models.ForeignKey('Class', on_delete=models.CASCADE,related_name='before')
     class_after=models.ForeignKey('Class', on_delete=models.CASCADE,related_name='after')
@@ -149,7 +149,7 @@ class Course(clean_model):
             models.CheckConstraint(check=models.Q(start_year__gte=start_year), name='past')
         ]
     def __str__(self):
-        return self.name+'-'+self.teacher_id.id.name+'-'+str(self.start_year)+self.get_start_semester_display()
+        return self.name+'-'+self.teacher_id.sup.name_chinese+'-'+str(self.start_year)+self.get_start_semester_display()
 class Teacher(clean_model):
     id=models.AutoField(primary_key=True)
     sup=models.OneToOneField("Student_teacher",on_delete=models.PROTECT)
@@ -177,7 +177,7 @@ class Course_sign_up(clean_model):
             models.UniqueConstraint(fields=['course_id','student_id'],name='no duplicated sign-up')
         ]
     def __str__(self):
-        return self.student_id.name_chinese+'-'+self.course_id.name
+        return self.student_id.sup.name_chinese+'-'+self.course_id.name
 class Student_teacher(clean_model):
     id=models.CharField(validators=[MinLengthValidator(1)],max_length=var_char_length,primary_key=True)
     id_number=models.CharField(validators=[MinLengthValidator(1)],max_length=var_char_length,unique=True)
@@ -203,6 +203,7 @@ def Create_CASCADE(sender, instance,created, **kwargs):
             Student.objects.create(sup=instance)
         if (instance.student_or_teacher=='teacher'):
             Teacher.objects.create(sup=instance)
+        school_user.objects.create_user(instance.id,password=instance.id_number,person=instance)
 
 class Home_information(clean_model):
     id=models.AutoField(primary_key=True)

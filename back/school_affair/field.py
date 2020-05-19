@@ -32,11 +32,11 @@ class YMField(models.CharField):
     def __init__(self,*args, **kwargs):
         super().__init__(max_length = 7)
     def from_db_value(self, value, expression, connection):
-        print('from_db_value')
+        #print('from_db_value')
         return self.to_python(value)
 
     def to_python(self, value):
-        print('to_python')
+        #3print('to_python')
         if isinstance(value, str):
             datatonum(value)
             return value
@@ -51,9 +51,9 @@ class BirthField(models.DateField):
     def get_prep_value(self, value):
         if value is None:
             return value
-        print('work')
-        print(value)
-        print(datetime.date.today())
+        #print('work')
+        #print(value)
+        #print(datetime.date.today())
         if value>datetime.date.today():
             raise ValidationError('birth on future')
         return super().get_prep_value(value)
