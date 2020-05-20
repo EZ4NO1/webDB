@@ -22,7 +22,7 @@ def initial_database():
         i.delete()
     del_list = models.Student.objects.all()
     for i in del_list:
-        i.delete()
+        i.sup_delete()
     del_list = models.Class.objects.all()
     for i in del_list:
         i.delete()

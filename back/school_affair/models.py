@@ -93,7 +93,7 @@ class Major(clean_model):
     id=models.CharField(validators=[MinLengthValidator(1)],max_length=var_char_length,primary_key=True)
     name=models.CharField(validators=[MinLengthValidator(1)],max_length=var_char_length)
     campus_id=models.ForeignKey('Campus', on_delete=models.PROTECT)
-    person_in_charge=models.ForeignKey('Teacher', on_delete=models.SET_NULL,null=True,blank=True)
+    person_in_charge_id=models.ForeignKey('Teacher', on_delete=models.SET_NULL,null=True,blank=True)
     address=models.CharField(validators=[MinLengthValidator(1)],max_length=var_char_length)
     def __str__(self):
         return self.name
@@ -129,6 +129,8 @@ class Student(clean_model):
         else :
             raise NotGraduateError('cannot delete student not graduated')
     objects = NoDeleteManager()
+    def sup_delete(self):
+        super().delete()
     def clean(self):
         super().clean()
         if self.sup.student_or_teacher!='student':
