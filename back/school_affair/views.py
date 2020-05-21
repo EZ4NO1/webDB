@@ -31,9 +31,9 @@ def index(request):
 @require_POST
 def login(request):
     username = request.POST.get('username')
-    #print(username)
+    print(username)
     password = request.POST.get('password')
-    #print(password)
+    print(password)
     user = authenticate(username=username, password=password)
     
     if user is not None:

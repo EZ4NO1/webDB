@@ -18,7 +18,7 @@ from django.urls import path,include
 from django.shortcuts import render
 
 def vue_login(request):
-    return  render(request, 'index.html')
+    return  render(request, 'login.html')
 
 
 urlpatterns = [
