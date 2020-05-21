@@ -19,11 +19,12 @@ from django.shortcuts import render
 
 def vue_login(request):
     return  render(request, 'login.html')
-
+def vue_campus(request):
+    return  render(request, 'campus.html')
 
 urlpatterns = [
     path('api/', include('school_affair.urls')),
     path('admin/', admin.site.urls),
     path('login',vue_login),
-
+    path('campus',vue_campus),
 ]

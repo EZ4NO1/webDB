@@ -13,6 +13,7 @@
           inset
           vertical
         ></v-divider>
+        <div v-bind:"hint"> </div>
         <v-spacer></v-spacer>
         <v-dialog v-model="dialog" max-width="500px">
           <template v-slot:activator="{ on }">
