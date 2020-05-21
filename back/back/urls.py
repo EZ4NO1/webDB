@@ -15,8 +15,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+from django.shortcuts import render
+
+def vue_login(request):
+    return  render(request, 'index.html')
+
 
 urlpatterns = [
-    path('', include('school_affair.urls')),
+    path('api/', include('school_affair.urls')),
     path('admin/', admin.site.urls),
+    path('login',vue_login),
+
 ]

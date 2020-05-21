@@ -14,6 +14,11 @@ from json import JSONDecodeError
 from .field import YMField,BirthField
 from copy import deepcopy
 
+
+
+
+
+
 NotExistJson=JsonResponse({'message': '数据不存在！','code':'fail'})
 NoMethodJson=JsonResponse({'message': 'No  valid Method','code':'fail'})
 NotJson=JsonResponse({'message': 'No  Json Format','code':'fail'})
