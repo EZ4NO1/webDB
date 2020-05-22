@@ -95,6 +95,7 @@
       datatype:{},
       dataalter:{},
       alterkeys:{},
+      need_update:false
     }),
     props:{
       url: {
@@ -198,6 +199,7 @@
             },function(res){
               alert(res.status)
             });
+            need_update=true;
         }
 
         this.close()
@@ -279,7 +281,7 @@
 <style>
 .my-dialog {
     position:  fixed;
-    display: inline;
+    z-index: 100;
 }
 .my-dt{
   position: absolute center;

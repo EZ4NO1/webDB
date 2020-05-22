@@ -75,6 +75,24 @@ module.exports = {
       // template title tag needs to be <title><%= htmlWebpackPlugin.options.title %></title>
       title: '学生选课',
     },
+    teacher_course: {
+      // entry for the page
+      entry: 'src/pages/teacher_course/main.js',
+      // output as dist/index.html
+      filename: 'teacher_course.html',
+      // when using title option,
+      // template title tag needs to be <title><%= htmlWebpackPlugin.options.title %></title>
+      title: '教师开课',
+    },
+    teacher_course: {
+      // entry for the page
+      entry: 'src/pages/unnormal_change/main.js',
+      // output as dist/index.html
+      filename: 'unnormal_change.html',
+      // when using title option,
+      // template title tag needs to be <title><%= htmlWebpackPlugin.options.title %></title>
+      title: '学籍异动管理',
+    },
 
 
   },

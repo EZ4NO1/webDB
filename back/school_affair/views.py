@@ -165,7 +165,7 @@ def singlemodel(request,model_class,readonlylist=[],plus={},autolist=[]):
                 forma.append(format_one_field(f,readonlylist))
         #print(forma)
         dic['format']=forma
-        print(dic)
+        #print(dic)
         return JsonResponse(dic)
     elif method == 'ALL':
         lines = model_class.objects.all()
@@ -508,7 +508,7 @@ def course(request):
     if request.user.person.student_or_teacher=='teacher':
         print(method)
         if method=='ALL' or method=='FORMAT':
-            return singlemodel(request,models.Course)
+            return singlemodel(request,models.Course,[],{},['teacher_id'])
         if method=='INSERT':
             return singlemodel(request,models.Course,{'teacher_id':str(models.Teacher.objects.get(sup=request.user.person).id)})
         if method=='DELETE' or method=='EDIT':
