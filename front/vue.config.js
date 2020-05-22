@@ -2,7 +2,6 @@ module.exports = {
   "transpileDependencies": [
     "vuetify"
   ],
-  /*
   pages: {
     login: {
       // entry for the page
@@ -23,7 +22,7 @@ module.exports = {
       title: '校区管理'
     },
 
-  },*/
+  },
   assetsDir: 'static',
   //publicPath: '/',
 }

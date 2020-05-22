@@ -13,7 +13,7 @@
         <v-spacer></v-spacer>
         <div v-text="hint"></div>
         <v-spacer></v-spacer>
-        <v-btn color="green" @click="newItem(item)">New Item</v-btn>
+        <v-btn color="green" @click="newItem()">新建项</v-btn>
         </template>
     <v-icon
     small
@@ -54,14 +54,11 @@
             </v-card-title>
             <v-card-text>
               <v-card-container>
-                <v-row>
-                  <div v-for="(value,key)in this.headers" :key="key">
-                    <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model=this.headers[key] label="campus id"  >{{editedItem[this.headers[key]]}}</v-text-field>
-                  </v-col>
+                  <div v-for=" item in this.formdata" :key="item.id">
+                  <v-row>
+                    <v-text-field :label="item['label']" v-model="item['data']" ></v-text-field>
+                  </v-row>
                   </div>
-                </v-row>
-                
                 </v-card-container>
             </v-card-text>
             <v-card-actions>
@@ -78,20 +75,17 @@
 <script>
   export default {
     data: () => ({
-      dialog: false,
+     dialog: false,
       headers: [
       ],
       tabledata: [],
-      editedIndex: -1,
-      editedItem: {
-      },
-
+      mode:'',
+      editedItem: [],
       defaultItem: {
-        id:'',
-        name: '',
-        address: '',
       },
-      hint:'aaaaaa'
+      formdata:[],
+      currentid:'',
+      hint:''
     }),
     props:{
       url: {
@@ -105,7 +99,12 @@
     },
     computed: {
       formTitle () {
-        return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
+        if (this.mode=="insert")
+        return '新建';
+
+        if (this.mode=="edit") 
+        return '修改';
+        return 'unknown action';
       },
     },
     created () {
@@ -114,17 +113,24 @@
       this.data_update();
     },
     methods: {
-      newItem(item){
-        this.editedIndex = this.tabledata.indexOf(item)
-        this.editedItem = Object.assign({}, item)
-        this.dialog = true
-        
+      newItem(){
+        this.formdata=[];
+        for (var head of this.headers){
+          if (head['value']!='actions')
+          this.formdata.push({label:head['value'],data:''});
+        }
+        this.mode='insert';
+        this.dialog = true;
+
       },
       editItem (item) {
-        this.editedIndex = this.tabledata.indexOf(item)
-        this.editedItem = Object.assign({}, item)
-        this.dialog = true
-        
+        this.formdata=[];
+        for (var str1 in this.editedItem){
+          this.formdata.push({label:str1,data:item[str1]});
+        }
+        this.mode='edit';
+        this.currentid=item['id'];
+        this.dialog = true;
       },
       deleteItem (item) {
         //const index = this.tabledata.indexOf(item)
@@ -135,32 +141,37 @@
                             this.data_update();
                         },function(res){
                             alert(res.status)
-                        });
-                        
+                        });       
         }
       },
       close () {
         this.dialog = false
-        this.$nextTick(() => {
-          this.editedItem = Object.assign({}, this.defaultItem)
-          this.editedIndex = -1
-        })
       },
       save () {
-        this.json=this.editedItem
-        if (this.editedIndex > -1) {
-          Object.assign(this.tabledata[this.editedIndex], this.editedItem)
-        } else {
-          this.tabledata.push(this.editedItem)
+        if (this.mode=='edit' || this.mode=='insert'){
+
+            var datadict={};
+            for (var value of this.formdata){
+              datadict[value['label']]=value['data'];
+            }
+            window.console.log(JSON.stringify(datadict));
+
+              if (this.mode=='edit') {
+              datadict['id']=this.currentid;
+              datadict['method']='EDIT';
+              }
+              if (this.mode=='insert') {
+              datadict['method']='INSERT';
+              }
+              this.$http.post(this.$props.url,JSON.stringify(datadict)).then(function(res){
+              var x = res.body;
+              this.hint=x['message'];
+              this.data_update();
+            },function(res){
+              alert(res.status)
+            });
         }
-        this.json["method"] = 'INSERT'
-        this.$http.post(this.$props.url,JSON.stringify(this.json)).then(function(res){
-          var x = res.body;
-          this.hint=x['message'];
-          this.data_update();
-        },function(res){
-          alert(res.status)
-        });
+
         this.close()
       },
       data_update(){

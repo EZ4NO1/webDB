@@ -183,6 +183,7 @@ def singlemodel(request,model_class,readonlylist=[],plus={}):
                         if isinstance(f,ForeignKey) or isinstance(f,OneToOneField):
                             tep=f.related_model.objects.filter(id=tep).first()
                         setattr(line,f.name,tep)
+            print(line)
             return try_to_save(line)
     return NoMethodJson
 def gen_model(m,field_list,data): 
