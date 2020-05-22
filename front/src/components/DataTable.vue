@@ -1,20 +1,42 @@
 <template>
 <div>
+<v-app>
+<div v-text="title">
+</div>
 <div id="app" class="my-dt">
   <v-data-table
     :headers="headers"
     :items="tabledata"
+    :search="search"
+    :custom-filter="customFilter"
     sort-by="calories"
     class="elevation-1"
+    show-group-by
   > 
+
+      
     <template v-slot:top>
+        
       <v-toolbar flat color="white">
-        <v-toolbar-title v-text="title"></v-toolbar-title>
+        <v-select  
+        v-model="filter_value"  
+        :items="filter_c" id="myselect" dense></v-select>
+        
+        <v-text-field
+        v-model="search"
+        append-icon="mdi-magnify"
+        label="Search"
+        single-line
+        hide-details
+      ></v-text-field>
         <v-spacer></v-spacer>
         <div v-text="hint"></div>
         <v-spacer></v-spacer>
         <v-btn color="green" @click="newItem()" v-if="insert">新建项</v-btn>
         </template>
+
+    
+         
     <v-icon
     small
         class="mr-2"
@@ -38,17 +60,11 @@
         mdi-delete
       </v-icon>
     </template>
-
-    <template v-slot:no-data>
-      <v-btn color="primary" @click="initialize">Reset</v-btn>
-    </template>
-   
        
   </v-data-table>
 </div>
-
 <div id="app" class="my-dialog">
-        <v-app>
+        
         <v-dialog v-model="dialog" max-width="500px">
           <v-card>
             <v-card-title>
@@ -74,9 +90,11 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
-        </v-app>
-        </div>
+   </div>
+   </v-app>
 </div>
+
+
 </template>
 <script>
   export default {
@@ -85,6 +103,7 @@
       headers: [
       ],
       tabledata: [],
+      search:'',
       mode:'',
       editedItem: [],
       defaultItem: {
@@ -95,7 +114,9 @@
       datatype:{},
       dataalter:{},
       alterkeys:{},
-      need_update:false
+      need_update:false,
+      filter_value:'',
+      filter_c:[],
     }),
     props:{
       url: {
@@ -131,10 +152,28 @@
     },
     created () {
       //this.initialize()
-      window.console.log("created")
+      //window.console.log("created")
       this.data_update();
     },
     methods: {
+      customFilter(value, search,item) {
+        window.console.log(JSON.stringify(value));
+        window.console.log(JSON.stringify(search));
+        window.console.log(JSON.stringify(item));
+        window.console.log(item);
+        if (item.hasOwnProperty(this.filter_value)){
+          if (item[this.filter_value].toLowerCase().indexOf(search.toLowerCase()) != -1)
+            return true;
+          else return false;
+        }
+        else {
+          for (var i in item){
+            if (item[i].toLowerCase().indexOf(search.toLowerCase()) == -1)
+            return false;
+          }
+          return true;
+        }
+      },
       newItem(){
         this.formdata=[];
         for (var head of this.headers){
@@ -173,7 +212,7 @@
         if (this.mode=='edit' || this.mode=='insert'){
 
             var datadict={};
-            window.console.log(JSON.stringify(alter));
+            ////window.console.log(JSON.stringify(alter));
             var alter=this.dataalter;
             for (var value of this.formdata){
               if (alter.hasOwnProperty(value['label'])){
@@ -183,7 +222,7 @@
                 datadict[value['label']]=value['data'];
               }
             }
-            window.console.log(JSON.stringify(datadict));
+            ////window.console.log(JSON.stringify(datadict));
 
               if (this.mode=='edit') {
               datadict['id']=this.currentid;
@@ -206,14 +245,15 @@
       },
       data_update(){
         //let self = this;
-        window.console.log(this.url)
-        window.console.log(this.$props.url)
+        //window.console.log(this.url)
+        //window.console.log(this.$props.url)
           this.$http.post(this.$props.url,JSON.stringify({method:'FORMAT'})).then(function(res){
                             var x= res.body;
-                            window.console.log(x);
+                            //window.console.log(x);
                             var code=x['code'];
                             this.datatype={};
                             this.dataalter={};
+                            this.filter_c=['All'];
                             if (code=='fail'){
                               this.hint=x['message']
                               return;
@@ -222,11 +262,11 @@
                             if (code=='success'){
                               this.editedItem={};
                               this.headers=[];
-                              window.console.log(this.headers);
+                              //window.console.log(this.headers);
                               for (var i of x['format']){
                                 var item={};
                                 var name =i['name']
-                                window.console.log(name);
+                                //window.console.log(name);
                                   if (i['read_only']=='false'){
                                     this.editedItem[name]='';
                                   }
@@ -235,6 +275,7 @@
                                 item['align']='center';
                                 this.datatype[name]=i['type'];
                                 this.headers.push(item);
+                                this.filter_c.push(name);
                                 if (i.hasOwnProperty('alter')){
                                   var tep={};
                                   for (var index in i['alter']){
@@ -250,29 +291,29 @@
                               }
                               if (this.$props.edit||this.$props.delete1)
                               this.headers.push({ text: 'Actions', value: 'actions', sortable: false,align:'center' });
-                              //window.console.log(this.headers);
+                              ////window.console.log(this.headers);
                         }},function(res){
                             alert(res.status)
                         });
           this.$http.post(this.$props.url,JSON.stringify({method:'ALL'})).then(function(res){
                             var x= res.body;
                             var code=x['code'];
-                            window.console.log(x);
+                            //window.console.log(x);
                             if (code=='fail'){
                               this.hint=x['message']
                               return;
                             } 
                             if (code=='success'){
-                               window.console.log(x['data']);
+                               //window.console.log(x['data']);
                               this.tabledata=x['data'];
-                               window.console.log(this.tabledata);
+                               //window.console.log(this.tabledata);
                               }
                         },function(res){
                             alert(res.status)
                         });
       
        
-       window.console.log(this.headers);
+       //window.console.log(this.headers);
        window.vue=this;
     }
   }
@@ -286,4 +327,16 @@
 .my-dt{
   position: absolute center;
 }
+#myselect{
+  position: absolute;
+  width:15px;
+}
+.v-list{
+  z-index: 100;
+}
+.v-application--wrap{
+  min-height:0vh ;
+}
+
+
 </style>

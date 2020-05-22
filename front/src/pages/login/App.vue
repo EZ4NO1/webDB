@@ -34,18 +34,18 @@ export default {
   },
   methods: {
     click: function () {
-      window.console.log(this.username)
-      this.$http.post('/api/login',{
-                            username:this.username,
-                            password:this.password
-                        },{
-                            emulateJSON:true
-                        }).then(function(res){
-                            alert(res.data);
-                            
+      window.console.log(this.username);
+      this.$http.post('api/login',JSON.stringify({username:this.username,password:this.password})).then(function(res){
+                              var x= res.body;
+                              if (x['code']=='success'){
+                                window.location.href=x['addr'];
+                              }
+                              else {
+                                alert(x['message']);
+                              }
                         },function(res){
                             alert(res.status)
-                        })
+                        });   
   
     
   },

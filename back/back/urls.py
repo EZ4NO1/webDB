@@ -48,5 +48,6 @@ urlpatterns = [
     path('teacher',vue_teacher),
     path('manage_course',vue_manage_course),
     path('student_course',vue_student_course),
+    path('teacher_course',vue_student_course),
     path('unnormal_change',vue_unnormal_change),
 ]

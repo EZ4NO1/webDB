@@ -30,21 +30,30 @@ def index(request):
     return HttpResponse("Hello, world. You're at the polls index.")
 @require_POST
 def login(request):
-    username = request.POST.get('username')
+    try:
+        data=json.loads(request.body)
+    except JSONDecodeError:
+        return NotJson
+    username = data.get('username')
+    print(request.body)
     print(username)
-    password = request.POST.get('password')
+    password = data.get('password')
     print(password)
     user = authenticate(username=username, password=password)
-    
+
     if user is not None:
         django_login(request,user)
         #print(user.person)
         if  user.person: 
-            return HttpResponse("welcome"+str(user.person))
+            if user.person.student_or_teacher=="student":
+                return JsonResponse({'addr':'/student_course','code':'success'})
+            if user.person.student_or_teacher=="teacher":
+                return JsonResponse({'addr':'/teacher_course','code':'success'})
+            return JsonResponse({'message':'Login fail','code':'fail'})
         else :
-            return HttpResponse("welcome Manager")
+            return JsonResponse({'addr':'/campus','code':'success'})
     else:
-        return HttpResponse("login fail")
+        return JsonResponse({'message':'Login fail','code':'fail'})
 
 def logout(request):
         logout(request)
