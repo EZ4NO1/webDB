@@ -30,7 +30,6 @@
       >
         mdi-pencil
       </v-icon>
-      <div>hhhhh</div>
       <v-icon
         small
         @click="deleteItem(item)"
@@ -125,12 +124,12 @@
         if (confirm('你真的要删除这一项吗?')==true){
           this.$http.post(this.$props.url,JSON.stringify({method:'DELETE',id:item['id']})).then(function(res){
                               var x= res.body;
-                              this.hint=x['message']
-                            
+                              this.hint=x['message'];
+                            this.data_update();
                         },function(res){
                             alert(res.status)
                         });
-                        this.data_update();
+                        
         }
       },
 
@@ -169,9 +168,9 @@
                             }
                             
                             if (code=='success'){
-                              this.headers=[];
                               this.editedItem={};
-                              //window.console.log(x['format']);
+                              this.headers=[];
+                              window.console.log(this.headers);
                               for (var i of x['format']){
                                 var item={};
                                 var name =i['name']
@@ -184,11 +183,11 @@
                                 item['align']='center';
                                 this.headers.push(item);
                               }
+                              this.headers.push({ text: 'Actions', value: 'actions', sortable: false,align:'center' });
                               //window.console.log(this.headers);
                         }},function(res){
                             alert(res.status)
                         });
-          
 
           this.$http.post(this.$props.url,JSON.stringify({method:'ALL'})).then(function(res){
                             var x= res.body;
@@ -206,7 +205,7 @@
                         },function(res){
                             alert(res.status)
                         });
-      this.headers.push({ text: 'Actions', value: 'actions', sortable: false });
+      
        
        window.console.log(this.headers);
        window.vue=this;
