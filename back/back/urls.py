@@ -29,6 +29,10 @@ def vue_student (request):
     return  render(request, 'student.html')
 def vue_teacher(request):
     return  render(request, 'teacher.html')
+def vue_manage_course(request):
+    return  render(request, 'manage_course.html')
+def vue_student_course(request):
+    return  render(request, 'student_course.html')
 urlpatterns = [
     path('api/', include('school_affair.urls')),
     path('admin/', admin.site.urls),
@@ -38,5 +42,7 @@ urlpatterns = [
     path('class',vue_class),
     path('student',vue_student),
     path('teacher',vue_teacher),
+    path('manage_course',vue_manage_course),
+    path('student_course',vue_student_course),
 
 ]

@@ -57,6 +57,24 @@ module.exports = {
       // template title tag needs to be <title><%= htmlWebpackPlugin.options.title %></title>
       title: '教师管理'
     },
+    mange_course: {
+      // entry for the page
+      entry: 'src/pages/manage_course/main.js',
+      // output as dist/index.html
+      filename: 'manage_course.html',
+      // when using title option,
+      // template title tag needs to be <title><%= htmlWebpackPlugin.options.title %></title>
+      title: '课程管理',
+    },
+    student_course: {
+      // entry for the page
+      entry: 'src/pages/student_course/main.js',
+      // output as dist/index.html
+      filename: 'student_course.html',
+      // when using title option,
+      // template title tag needs to be <title><%= htmlWebpackPlugin.options.title %></title>
+      title: '学生选课',
+    },
 
 
   },

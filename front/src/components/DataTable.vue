@@ -13,7 +13,7 @@
         <v-spacer></v-spacer>
         <div v-text="hint"></div>
         <v-spacer></v-spacer>
-        <v-btn color="green" @click="newItem()">新建项</v-btn>
+        <v-btn color="green" @click="newItem()" v-if="insert">新建项</v-btn>
         </template>
     <v-icon
     small
@@ -26,12 +26,14 @@
         small
         class="mr-2"
         @click="editItem(item)"
+        v-if="edit"
       >
         mdi-pencil
       </v-icon>
       <v-icon
         small
         @click="deleteItem(item)"
+        v-if="delete1"
       >
         mdi-delete
       </v-icon>
@@ -45,7 +47,7 @@
   </v-data-table>
 </div>
 
-<div id="app" class="my-dialog-edit">
+<div id="app" class="my-dialog">
         <v-app>
         <v-dialog v-model="dialog" max-width="500px">
           <v-card>
@@ -102,7 +104,19 @@
       title:{
         type: String,
         required: true
-      }
+      },
+      delete1:{
+        type: Boolean,
+        default: true
+      },
+      insert:{
+        type: Boolean,
+        default: true
+      },
+      edit:{
+        type: Boolean,
+        default: true
+      },
     },
     computed: {
       formTitle () {
@@ -232,6 +246,7 @@
                                   this.alterkeys[name]=tlist;
                                 }
                               }
+                              if (this.$props.edit||this.$props.delete1)
                               this.headers.push({ text: 'Actions', value: 'actions', sortable: false,align:'center' });
                               //window.console.log(this.headers);
                         }},function(res){

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <data-table  url="api/class" title="班级管理"/>
+    <data-table  url="api/course" title="校区管理"/>
   </div>
 </template>
 

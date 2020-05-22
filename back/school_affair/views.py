@@ -122,7 +122,7 @@ def format_one_field(f,readonlylist):
     else :
         one_field['type']='text'
     return one_field
-def singlemodel(request,model_class,readonlylist=[],plus={}):
+def singlemodel(request,model_class,readonlylist=[],plus={},autolist=[]):
     readonlylist=readonlylist+['id']
     try:
         data=json.loads(request.body)
@@ -159,9 +159,13 @@ def singlemodel(request,model_class,readonlylist=[],plus={}):
         dic={'message': 'OK','code':'success'}
         forma=[]
         for f in model_class._meta.fields:
-            forma.append(format_one_field(f,readonlylist))
+            if (f.name in autolist):
+                forma.append({'name':f.name,'read_only':'true','type':'auto'})
+            else:        
+                forma.append(format_one_field(f,readonlylist))
         #print(forma)
         dic['format']=forma
+        print(dic)
         return JsonResponse(dic)
     elif method == 'ALL':
         lines = model_class.objects.all()
@@ -532,11 +536,11 @@ def course_sign_up(request):
     if  not request.user.is_authenticated:
         return JsonResponse({'message':'未登录用户','code':'fail'})
     if request.user.person is  None:
-        return singlemodel(request,models.Course_sign_up)
+        return singlemodel(request,models.Course_sign_up,{},['student_id'])
     if request.user.person.student_or_teacher=='student':
         entity=models.Student.objects.get(sup=request.user.person)
         if method=='FORMAT':
-            return singlemodel(request,models.Course_sign_up,read_only)
+            return singlemodel(request,models.Course_sign_up,read_only,{},['student_id','score'])
         if  method=='ALL':
             dataout=[]
             for j in models.Course_sign_up.objects.filter(student_id=entity):

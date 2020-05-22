@@ -1,6 +1,7 @@
 <template>
   <div>
-    <data-table  url="api/class" title="班级管理"/>
+    <data-table  url="api/course" title="所有已开设的课程" :delete1="false" :insert="false" :edit="false"/>
+    <data-table  url="api/course_sign_up" title="学生选课"  :edit="false"/>
   </div>
 </template>
 

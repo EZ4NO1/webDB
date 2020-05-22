@@ -12,6 +12,5 @@ urlpatterns = [
     path('teacher',views.teacher_info),
     path('unnormal',views.student_unnormal_change),
     path('course',views.course),
-    path('course_sign_up',views.course_sign_up)
-
+    path('course_sign_up',views.course_sign_up),
 ]
