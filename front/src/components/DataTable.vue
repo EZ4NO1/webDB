@@ -55,9 +55,9 @@
             <v-card-text>
               <v-card-container>
                 <v-row>
-                  <div v-for="(value,key)in this.headers" :key="key">
+                  <div v-for="value in this.headers" :key="value">
                     <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model=this.headers[key] label="campus id"  >{{editedItem[this.headers[key]]}}</v-text-field>
+                    <v-text-field this.value label="campus id"  >{{editedItem[this.headers[key]]}}</v-text-field>
                   </v-col>
                   </div>
                 </v-row>
