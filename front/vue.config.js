@@ -2,6 +2,7 @@ module.exports = {
   "transpileDependencies": [
     "vuetify"
   ],
+  /*
   pages: {
     login: {
       // entry for the page
@@ -21,7 +22,8 @@ module.exports = {
       // template title tag needs to be <title><%= htmlWebpackPlugin.options.title %></title>
       title: '校区管理'
     },
-  },
+
+  },*/
   assetsDir: 'static',
   //publicPath: '/',
 }
