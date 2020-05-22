@@ -320,7 +320,8 @@ def T_S(request,role,readonlylist=[]):
             add_m=change_model(add_m,addtionclass_field,data,readonlylist)
         else :
             add_m=gen_model(addtionclass,addtionclass_field,data)
-            add_m.sup=sup_m
+            if  add_m:
+                add_m.sup=sup_m
         try:
             if add_m:
                 add_m.save()

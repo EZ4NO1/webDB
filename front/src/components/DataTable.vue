@@ -56,7 +56,11 @@
               <v-card-container>
                   <div v-for=" item in this.formdata" :key="item.id">
                   <v-row>
-                    <v-text-field :label="item['label']" v-model="item['data']" ></v-text-field>
+                   <v-select :label="item['label']" 
+                    v-model="item['data']" 
+                    v-if="dataalter.hasOwnProperty(item['label'])" 
+                    :items="alterkeys[item['label']]"></v-select>
+                    <v-text-field :label="item['label']" v-model="item['data']" v-else ></v-text-field>
                   </v-row>
                   </div>
                 </v-card-container>
@@ -85,7 +89,10 @@
       },
       formdata:[],
       currentid:'',
-      hint:''
+      hint:'',
+      datatype:{},
+      dataalter:{},
+      alterkeys:{},
     }),
     props:{
       url: {
@@ -116,7 +123,7 @@
       newItem(){
         this.formdata=[];
         for (var head of this.headers){
-          if (head['value']!='actions')
+          if (head['value']!='actions' && this.datatype[head['value']]!='auto' )
           this.formdata.push({label:head['value'],data:''});
         }
         this.mode='insert';
@@ -151,8 +158,15 @@
         if (this.mode=='edit' || this.mode=='insert'){
 
             var datadict={};
+            window.console.log(JSON.stringify(alter));
+            var alter=this.dataalter;
             for (var value of this.formdata){
-              datadict[value['label']]=value['data'];
+              if (alter.hasOwnProperty(value['label'])){
+                datadict[value['label']]=alter[value['label']][value['data']];
+              }
+              else{
+                datadict[value['label']]=value['data'];
+              }
             }
             window.console.log(JSON.stringify(datadict));
 
@@ -179,14 +193,11 @@
         window.console.log(this.url)
         window.console.log(this.$props.url)
           this.$http.post(this.$props.url,JSON.stringify({method:'FORMAT'})).then(function(res){
-                           
-                            
-                            //window.console.log(res.body);
-                            
                             var x= res.body;
                             window.console.log(x);
                             var code=x['code'];
-                            
+                            this.datatype={};
+                            this.dataalter={};
                             if (code=='fail'){
                               this.hint=x['message']
                               return;
@@ -206,7 +217,20 @@
                                 item['text']=name;
                                 item['value']=name;
                                 item['align']='center';
+                                this.datatype[name]=i['type'];
                                 this.headers.push(item);
+                                if (i.hasOwnProperty('alter')){
+                                  var tep={};
+                                  for (var index in i['alter']){
+                                    tep[i['alter'][index]]=index;
+                                  }
+                                  this.dataalter[name]=tep;
+                                  var tlist=[];
+                                  for (var index in i['alter']){
+                                    tlist.push(i['alter'][index]);
+                                  }
+                                  this.alterkeys[name]=tlist;
+                                }
                               }
                               this.headers.push({ text: 'Actions', value: 'actions', sortable: false,align:'center' });
                               //window.console.log(this.headers);

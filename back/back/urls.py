@@ -21,10 +21,22 @@ def vue_login(request):
     return  render(request, 'login.html')
 def vue_campus(request):
     return  render(request, 'campus.html')
-
+def vue_major(request):
+    return  render(request, 'major.html')
+def vue_class(request):
+    return  render(request, 'class.html')
+def vue_student (request):
+    return  render(request, 'student.html')
+def vue_teacher(request):
+    return  render(request, 'teacher.html')
 urlpatterns = [
     path('api/', include('school_affair.urls')),
     path('admin/', admin.site.urls),
     path('login',vue_login),
     path('campus',vue_campus),
+    path('major',vue_major),
+    path('class',vue_class),
+    path('student',vue_student),
+    path('teacher',vue_teacher),
+
 ]
