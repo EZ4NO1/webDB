@@ -55,17 +55,14 @@
             <v-card-text>
               <v-card-container>
                 <v-row>
-                  <v-col cols="12" sm="6" md="4">
+                  <div v-for="(value,key)in this.headers" :key=key>
+                    <v-col cols="12" sm="6" md="4">
                     <v-text-field v-model="editedItem.id" label="campus id"  >{{editedItem.id}}</v-text-field>
                   </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.name" label="campus name"  >{{editedItem.name}}</v-text-field>
-                  </v-col>
-                  <v-col cols="12">
-                    <v-text-field v-model="editedItem.address" label="address"  >{{editedItem.address}}</v-text-field>
-                  </v-col>      
+                  </div>
                 </v-row>
-              </v-card-container>
+                
+                </v-card-container>
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
@@ -123,26 +120,12 @@
         this.editedIndex = this.tabledata.indexOf(item)
         this.editedItem = Object.assign({}, item)
         this.dialog = true
-        this.$http.post(this.$props.url,JSON.stringify({method:'INSERT',id:item['id'],name:item['name'],address:item['address']})).then(function(res){
-          var x = res.body;
-          this.hint=x['message'];
-          this.data_update();
-        },function(res){
-          alert(res.status)
-        });
+        
       },
       editItem (item) {
         this.editedIndex = this.tabledata.indexOf(item)
         this.editedItem = Object.assign({}, item)
         this.dialog = true
-
-        this.$http.post(this.$props.url,JSON.stringify({method:'INSERT',id:item['id'],name:item['name'],address:item['address']})).then(function(res){
-          var x = res.body;
-          this.hint=x['message'];
-          this.data_update();
-        },function(res){
-          alert(res.status)
-        });
         
       },
       deleteItem (item) {
@@ -166,11 +149,20 @@
         })
       },
       save () {
+        this.json=this.editedItem
         if (this.editedIndex > -1) {
           Object.assign(this.tabledata[this.editedIndex], this.editedItem)
         } else {
           this.tabledata.push(this.editedItem)
         }
+        this.json["method"] = 'INSERT'
+        this.$http.post(this.$props.url,JSON.stringify(this.json)).then(function(res){
+          var x = res.body;
+          this.hint=x['message'];
+          this.data_update();
+        },function(res){
+          alert(res.status)
+        });
         this.close()
       },
       data_update(){
