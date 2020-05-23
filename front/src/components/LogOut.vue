@@ -6,12 +6,7 @@
       </v-btn>
       </div>     
   </nav>
-
 </template>  
-
- 
-
-
 <script>
   export default {
     data: () => ({

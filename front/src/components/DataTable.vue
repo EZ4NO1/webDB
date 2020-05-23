@@ -238,10 +238,9 @@
             },function(res){
               alert(res.status)
             });
-            need_update=true;
+            this.need_update=true;
         }
-
-        this.close()
+        this.dialog = false
       },
       data_update(){
         //let self = this;
