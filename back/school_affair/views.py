@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth import authenticate  
-from django.contrib.auth import login as django_login,logout
+from django.contrib.auth import login as django_login,logout as django_logout
 from django.shortcuts import redirect
 from . import models
 import json
@@ -56,7 +56,7 @@ def login(request):
         return JsonResponse({'message':'Login fail','code':'fail'})
 
 def logout(request):
-        logout(request)
+        django_logout(request)
         return HttpResponse("Logout success")
 
 
@@ -495,7 +495,7 @@ def student_unnormal_change(request):
         return OKJson
     return NoMethodJson
 
-PermissionJson=JsonResponse({'message': 'permisiion deny','code':'fail'})
+PermissionJson=JsonResponse({'message': 'permission deny','code':'fail'})
 @require_POST
 def course(request):
     try:

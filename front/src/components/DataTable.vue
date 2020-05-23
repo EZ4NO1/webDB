@@ -1,8 +1,8 @@
 <template>
 <div>
 <v-app>
-<div v-text="title">
-</div>
+<h1 v-text="title">
+</h1>
 <div id="app" class="my-dt">
   <v-data-table
     :headers="headers"
