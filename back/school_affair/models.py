@@ -115,7 +115,7 @@ class Class(clean_model):
 class Student(clean_model):
     id=models.AutoField(primary_key=True)
     sup=models.OneToOneField("Student_teacher",on_delete=models.PROTECT)
-    class_id=models.ForeignKey("Class", on_delete=models.CASCADE,null=True,blank=True)
+    class_id=models.ForeignKey("Class", on_delete=models.PROTECT,null=True,blank=True)
     def __str__(self):
         return self.sup.name_chinese
     def delete(self):
