@@ -2,8 +2,6 @@
 
 一个基于mysql+django+vue的前后端完全分离的web高校管理系统
 
-# :mortar_board:组内人员和分工情况
-
 # :house:系统架构
 
 ![Untitled Diagram (3)](D:\3spring\数据库\lab3\Untitled Diagram (5).png)
